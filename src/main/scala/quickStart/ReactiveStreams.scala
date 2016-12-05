@@ -36,7 +36,7 @@ object ReactiveStreams extends App {
     Nil
   )
 
-  WaitForFuture.apply("Authors") {
+  WaitForFuture("Authors") {
     val authors: Source[Author, NotUsed] =
       tweets
         .filter(_.hashTags.contains(akkaTag))
@@ -53,7 +53,7 @@ object ReactiveStreams extends App {
       //.runWith(Sink.foreach(println)) // Prints lines that start with "HashTag"
   }.showFile("hashTags.txt")
 
-  WaitForFuture.apply("Broadcasting a Stream") {
+  WaitForFuture("Broadcasting a Stream") {
     // If the type parameter for sink() is not supplied then the files it creates will be empty
     val writeAuthors: Sink[Author, Future[IOResult]] = sink[Author]("authors2.txt") // Sink.ignore
     val writeHashTags: Sink[HashTag, Future[IOResult]] = sink[HashTag]("hashTags2.txt") // Sink.ignore

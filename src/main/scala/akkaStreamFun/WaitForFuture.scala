@@ -18,9 +18,11 @@ object WaitForFuture {
 class WaitForFuture {
   def apply(msg: String="", delimChar: String = "=")(code: => Future[_])
                  (implicit ec: ExecutionContext): WaitForFuture = {
-    if (msg.nonEmpty && delimChar.nonEmpty) println("\n" + delimChar*50)
-    if (msg.nonEmpty) println(msg)
-    if (msg.nonEmpty && delimChar.nonEmpty) println(delimChar*50)
+    if (msg.nonEmpty) {
+      if (delimChar.nonEmpty) println("\n" + delimChar*50)
+      println(msg)
+      if (delimChar.nonEmpty) println(delimChar*50)
+    }
     Await.ready(code, Duration.Inf)
     this
   }

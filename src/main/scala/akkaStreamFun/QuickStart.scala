@@ -1,4 +1,4 @@
-package quickStart
+package akkaStreamFun
 
 import akka.{Done, NotUsed}
 import akka.actor.ActorSystem

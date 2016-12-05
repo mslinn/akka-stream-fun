@@ -1,4 +1,4 @@
-package quickStart
+package akkaStreamFun
 
 import akka.NotUsed
 import akka.actor.ActorSystem
@@ -42,21 +42,21 @@ object ReactiveStreams extends App {
         .filter(_.hashTags.contains(akkaTag))
         .map(_.author)
     authors
-      .runWith(sink("authors.txt"))
+      .runWith(fileSink("authors.txt"))
       //.runWith(Sink.foreach(println)) // Prints lines that start with "Author"
   }.showFile("authors.txt")
 
   WaitForFuture.apply("HashTags") {
     val hashTags: Source[HashTag, _] = tweets.mapConcat(_.hashTags.toList)
     hashTags
-      .runWith(sink("hashTags.txt"))
+      .runWith(fileSink("hashTags.txt"))
       //.runWith(Sink.foreach(println)) // Prints lines that start with "HashTag"
   }.showFile("hashTags.txt")
 
   WaitForFuture("Broadcasting a Stream") {
     // If the type parameter for sink() is not supplied then the files it creates will be empty
-    val writeAuthors: Sink[Author, Future[IOResult]] = sink[Author]("authors2.txt") // Sink.ignore
-    val writeHashTags: Sink[HashTag, Future[IOResult]] = sink[HashTag]("hashTags2.txt") // Sink.ignore
+    val writeAuthors: Sink[Author, Future[IOResult]] = fileSink[Author]("authors2.txt") // Sink.ignore
+    val writeHashTags: Sink[HashTag, Future[IOResult]] = fileSink[HashTag]("hashTags2.txt") // Sink.ignore
 
     val runnableGraph: RunnableGraph[NotUsed] = RunnableGraph.fromGraph(GraphDSL.create() { implicit graphDSLBuilder =>
       import akka.stream.scaladsl.GraphDSL.Implicits._

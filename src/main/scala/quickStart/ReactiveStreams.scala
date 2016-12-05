@@ -72,5 +72,10 @@ object ReactiveStreams extends App {
   }.showFile("authors2.txt")
    .showFile("hashTags2.txt")
 
+
+  WaitForFuture("Back-pressure in action") {
+    Future.successful("")
+  }
+
   System.exit(0)
 }

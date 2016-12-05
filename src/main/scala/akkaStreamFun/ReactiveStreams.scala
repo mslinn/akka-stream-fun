@@ -2,9 +2,10 @@ package akkaStreamFun
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, RunnableGraph, Sink, Source}
+import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Keep, RunnableGraph, Sink, Source}
 import akka.stream.{ActorMaterializer, ClosedShape, IOResult, OverflowStrategy, UniformFanOutShape}
 import scala.concurrent.Future
+import scala.util.Success
 
 object ReactiveStreams extends App {
   implicit val system = ActorSystem("reactive-tweets")
@@ -36,6 +37,7 @@ object ReactiveStreams extends App {
     Nil
   )
 
+
   WaitForFuture("Authors") {
     val authors: Source[Author, NotUsed] =
       tweets
@@ -46,12 +48,14 @@ object ReactiveStreams extends App {
       //.runWith(Sink.foreach(println)) // Prints lines that start with "Author"
   }.showFile("authors.txt")
 
+
   WaitForFuture.apply("HashTags") {
     val hashTags: Source[HashTag, _] = tweets.mapConcat(_.hashTags.toList)
     hashTags
       .runWith(fileSink("hashTags.txt"))
       //.runWith(Sink.foreach(println)) // Prints lines that start with "HashTag"
   }.showFile("hashTags.txt")
+
 
   WaitForFuture("Broadcasting a Stream") {
     // If the type parameter for sink() is not supplied then the files it creates will be empty
@@ -83,6 +87,47 @@ object ReactiveStreams extends App {
       .buffer(10, OverflowStrategy.dropHead)
       .map(slowComputation)
       .runWith(Sink.ignore)
+  }
+
+
+  WaitForFuture("Materialized Values") {
+    val count: Flow[Tweet, Int, NotUsed] = Flow[Tweet].map(_ => 1)
+
+    val sumSink: Sink[Int, Future[Int]] = Sink.fold[Int, Int](0)(_ + _)
+
+    val counterGraph: RunnableGraph[Future[Int]] =
+      tweets
+        .via(count)
+        .toMat(sumSink)(Keep.right)
+
+    val futureSum: Future[Int] = counterGraph.run()
+    futureSum.andThen { case Success(c) => println(s"Total tweets processed: $c") }
+  }
+
+
+  WaitForFuture("More Materialized Values") {
+    val sumSink = Sink.fold[Int, Int](0)(_ + _)
+
+    val counterRunnableGraph: RunnableGraph[Future[Int]] =
+      tweets
+        .filter(_.hashTags contains akkaTag)
+        .map(_ => 1)
+        .toMat(sumSink)(Keep.right)
+
+    // materialize the stream once in the morning
+    val futureMorningTweets: Future[Int] = counterRunnableGraph.run()
+    futureMorningTweets.andThen { case Success(c) => println(s"Morning tweets containing ${ akkaTag.name }: $c") }
+
+    // and once in the evening, reusing the flow
+    val futureEveningTweets: Future[Int] = counterRunnableGraph.run()
+    futureEveningTweets.andThen { case Success(c) => println(s"Evening tweets containing ${ akkaTag.name }: $c") }
+
+    val futureSumTweets: Future[Int] =
+      tweets
+        .filter(_.hashTags contains akkaTag)
+        .map(_ => 1)
+        .runWith(sumSink)
+    futureSumTweets.andThen { case Success(c) => println(s"Tweets containing ${ akkaTag.name }: $c") }
   }
 
   System.exit(0)

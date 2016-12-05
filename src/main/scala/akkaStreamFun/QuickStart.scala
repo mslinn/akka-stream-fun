@@ -23,6 +23,7 @@ object QuickStart extends App {
   }
   println("")
 
+
   WaitForFuture.deleteIfPresent("factorials.txt")() {
     factorials
       .map(num => ByteString(s"$num\n"))
@@ -30,6 +31,7 @@ object QuickStart extends App {
       /*.andThen { // just for interest's sake
           case scala.util.Success(x) => println(x) } */
   }.showFile("factorials.txt")
+
 
   WaitForFuture.deleteIfPresent("factorial2.txt")("Reusable Pieces") {
     def lineSink(filename: String): Sink[String, Future[IOResult]] =
@@ -39,6 +41,7 @@ object QuickStart extends App {
 
     factorials.map(_.toString).runWith(lineSink("factorial2.txt"))
   }.showFile("factorial2.txt")
+
 
   WaitForFuture("Time-Based Processing") {
     val done: Future[Done] =

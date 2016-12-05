@@ -3,7 +3,7 @@ package quickStart
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, RunnableGraph, Sink, Source}
-import akka.stream.{ActorMaterializer, ClosedShape, IOResult, UniformFanOutShape}
+import akka.stream.{ActorMaterializer, ClosedShape, IOResult, OverflowStrategy, UniformFanOutShape}
 import scala.concurrent.Future
 
 object ReactiveStreams extends App {
@@ -74,7 +74,15 @@ object ReactiveStreams extends App {
 
 
   WaitForFuture("Back-pressure in action") {
-    Future.successful("")
+    def slowComputation(tweet: Tweet): Long = {
+      Thread.sleep(500) // act as if performing some heavy computation
+      tweet.body.length.toLong
+    }
+
+    tweets
+      .buffer(10, OverflowStrategy.dropHead)
+      .map(slowComputation)
+      .runWith(Sink.ignore)
   }
 
   System.exit(0)

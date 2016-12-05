@@ -122,6 +122,7 @@ object ReactiveStreams extends App {
     val futureEveningTweets: Future[Int] = counterRunnableGraph.run()
     futureEveningTweets.andThen { case Success(c) => println(s"Evening tweets containing ${ akkaTag.name }: $c") }
 
+    // runWith shorthand
     val futureSumTweets: Future[Int] =
       tweets
         .filter(_.hashTags contains akkaTag)

@@ -19,8 +19,8 @@ object QuickStart extends App {
   source.runForeach(i => print(i + " "))(materializer)
   val factorials: Source[BigInt, NotUsed] = source.scan(BigInt(1))((acc, next) => acc * next)
 
-  BlockOf.asycCode(delimChar="") {
-    delete("factorials.txt")
+  delete("factorials.txt")
+  WaitForFuture.apply(delimChar="") {
     factorials
       .map(num => ByteString(s"$num\n"))
       .runWith(FileIO.toPath(Paths.get("factorials.txt")))
@@ -30,7 +30,7 @@ object QuickStart extends App {
   println("\n\nfactorials.txt:")
   println(io.Source.fromFile("factorials.txt").mkString)
 
-  BlockOf.asycCode("Reusable Pieces") {
+  WaitForFuture.apply("Reusable Pieces") {
     def lineSink(filename: String): Sink[String, Future[IOResult]] =
       Flow[String]
         .map(s => ByteString(s + "\n"))
@@ -43,7 +43,7 @@ object QuickStart extends App {
   println("\nfactorials2.txt:")
   println(io.Source.fromFile("factorial2.txt").mkString)
 
-  BlockOf.asycCode("Time-Based Processing") {
+  WaitForFuture.apply("Time-Based Processing") {
     val done: Future[Done] =
       factorials
         .zipWith(Source(0 to 10))((num, idx) => s"$idx! = $num")

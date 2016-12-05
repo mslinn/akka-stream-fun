@@ -36,7 +36,7 @@ object ReactiveStreams extends App {
     Nil
   )
 
-  BlockOf.asycCode("Authors", delimChar="") {
+  WaitForFuture.apply("Authors") {
     val authors: Source[Author, NotUsed] =
       tweets
         .filter(_.hashTags.contains(akkaTag))
@@ -44,17 +44,17 @@ object ReactiveStreams extends App {
     authors
       .runWith(sink("authors.txt"))
       //.runWith(Sink.foreach(println)) // Prints lines that start with "Author"
-  }
+  }.showFile("authors.txt")
 
-  BlockOf.asycCode("HashTags") {
+  WaitForFuture.apply("HashTags") {
     val hashTags: Source[HashTag, _] = tweets.mapConcat(_.hashTags.toList)
     hashTags
       .runWith(sink("hashTags.txt"))
       //.runWith(Sink.foreach(println)) // Prints lines that start with "HashTag"
-  }
+  }.showFile("hashTags.txt")
 
-  BlockOf.asycCode("Broadcasting a Stream") {
-    // If the type parameter for sink is not supplied then the files will be empty
+  WaitForFuture.apply("Broadcasting a Stream") {
+    // If the type parameter for sink() is not supplied then the files it creates will be empty
     val writeAuthors: Sink[Author, Future[IOResult]] = sink[Author]("authors2.txt") // Sink.ignore
     val writeHashTags: Sink[HashTag, Future[IOResult]] = sink[HashTag]("hashTags2.txt") // Sink.ignore
 
@@ -69,7 +69,8 @@ object ReactiveStreams extends App {
     })
     runnableGraph.run()
     Future.successful("Done")
-  }
+  }.showFile("authors2.txt")
+   .showFile("hashTags2.txt")
 
   System.exit(0)
 }

@@ -1,3 +1,5 @@
+package quickStart
+
 import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
 import akka.stream._
@@ -12,12 +14,6 @@ object QuickStart extends App {
   implicit val system = ActorSystem("QuickStart")
   implicit val executionContext = system.dispatcher
   implicit val materializer = ActorMaterializer()
-
-  /** The Source and Flow methods do not overwrite any pre-existing file sinks */
-  def delete(fileName: String): Unit = {
-    new java.io.File(fileName).delete()
-    ()
-  }
 
   val source: Source[Int, NotUsed] = Source(1 to 10)
   source.runForeach(i => print(i + " "))(materializer)
@@ -35,11 +31,12 @@ object QuickStart extends App {
   println(io.Source.fromFile("factorials.txt").mkString)
 
   BlockOf.asycCode("Reusable Pieces") {
-    delete("factorials2.txt")
     def lineSink(filename: String): Sink[String, Future[IOResult]] =
       Flow[String]
         .map(s => ByteString(s + "\n"))
         .toMat(FileIO.toPath(Paths.get(filename)))(Keep.right)
+
+    delete("factorials2.txt")
 
     factorials.map(_.toString).runWith(lineSink("factorial2.txt"))
   }

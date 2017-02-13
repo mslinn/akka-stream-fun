@@ -37,7 +37,7 @@ javacOptions ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-stream" % "2.4.14" withSources(),
+  "com.typesafe.akka" %% "akka-stream" % "2.4.17" withSources(),
   "org.scalatest"     %% "scalatest"   % "3.0.0" % "test" withSources(),
   "junit"             %  "junit"       % "4.12"  % "test"
 )

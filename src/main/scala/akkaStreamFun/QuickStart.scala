@@ -15,7 +15,8 @@ object QuickStart extends App {
   implicit val executionContext = system.dispatcher
   implicit val materializer = ActorMaterializer()
 
-  val source: Source[Int, NotUsed] = Source(1 to 10)
+  val maxRange = 10
+  val source: Source[Int, NotUsed] = Source(1 to maxRange)
   val factorials: Source[BigInt, NotUsed] = source.scan(BigInt(1))((acc, next) => acc * next)
 
   WaitForFuture() {
@@ -46,8 +47,8 @@ object QuickStart extends App {
   WaitForFuture("Time-Based Processing") {
     val done: Future[Done] =
       factorials
-        .zipWith(Source(0 to 10))((num, idx) => s"$idx! = $num")
-        .throttle(1, 1 second, 1, ThrottleMode.shaping)
+        .zipWith(Source(0 to maxRange))((num, idx) => s"$idx! = $num")
+        .throttle(1, 1 second, 1, ThrottleMode.Shaping)
         .runForeach(println)
     done
   }
